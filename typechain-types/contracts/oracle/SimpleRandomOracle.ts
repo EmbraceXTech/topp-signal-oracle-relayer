@@ -27,11 +27,10 @@ export interface SimpleRandomOracleInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "caller"
-      | "latestRandomness"
-      | "latestTimestamp"
+      | "fulfillRandomness"
+      | "randomness"
       | "requestRandomness"
       | "setCaller"
-      | "updateRandomness"
   ): FunctionFragment;
 
   getEvent(
@@ -40,51 +39,41 @@ export interface SimpleRandomOracleInterface extends Interface {
 
   encodeFunctionData(functionFragment: "caller", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "latestRandomness",
-    values: [BigNumberish]
+    functionFragment: "fulfillRandomness",
+    values: [BigNumberish, BigNumberish[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "latestTimestamp",
-    values?: undefined
+    functionFragment: "randomness",
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "requestRandomness",
-    values: [BigNumberish]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setCaller",
     values: [AddressLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "updateRandomness",
-    values: [BigNumberish[]]
-  ): string;
 
   decodeFunctionResult(functionFragment: "caller", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "latestRandomness",
+    functionFragment: "fulfillRandomness",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "latestTimestamp",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "randomness", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "requestRandomness",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setCaller", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "updateRandomness",
-    data: BytesLike
-  ): Result;
 }
 
 export namespace RandomnessRequestedEvent {
-  export type InputTuple = [time: BigNumberish];
-  export type OutputTuple = [time: bigint];
+  export type InputTuple = [time: BigNumberish, amount: BigNumberish];
+  export type OutputTuple = [time: bigint, amount: bigint];
   export interface OutputObject {
     time: bigint;
+    amount: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -153,23 +142,25 @@ export interface SimpleRandomOracle extends BaseContract {
 
   caller: TypedContractMethod<[], [string], "view">;
 
-  latestRandomness: TypedContractMethod<[arg0: BigNumberish], [bigint], "view">;
+  fulfillRandomness: TypedContractMethod<
+    [time: BigNumberish, _randomness: BigNumberish[]],
+    [void],
+    "nonpayable"
+  >;
 
-  latestTimestamp: TypedContractMethod<[], [bigint], "view">;
+  randomness: TypedContractMethod<
+    [arg0: BigNumberish, arg1: BigNumberish],
+    [bigint],
+    "view"
+  >;
 
   requestRandomness: TypedContractMethod<
-    [time: BigNumberish],
+    [time: BigNumberish, amount: BigNumberish],
     [void],
     "nonpayable"
   >;
 
   setCaller: TypedContractMethod<[_caller: AddressLike], [void], "nonpayable">;
-
-  updateRandomness: TypedContractMethod<
-    [randomness: BigNumberish[]],
-    [void],
-    "nonpayable"
-  >;
 
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
@@ -179,20 +170,29 @@ export interface SimpleRandomOracle extends BaseContract {
     nameOrSignature: "caller"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
-    nameOrSignature: "latestRandomness"
-  ): TypedContractMethod<[arg0: BigNumberish], [bigint], "view">;
+    nameOrSignature: "fulfillRandomness"
+  ): TypedContractMethod<
+    [time: BigNumberish, _randomness: BigNumberish[]],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
-    nameOrSignature: "latestTimestamp"
-  ): TypedContractMethod<[], [bigint], "view">;
+    nameOrSignature: "randomness"
+  ): TypedContractMethod<
+    [arg0: BigNumberish, arg1: BigNumberish],
+    [bigint],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "requestRandomness"
-  ): TypedContractMethod<[time: BigNumberish], [void], "nonpayable">;
+  ): TypedContractMethod<
+    [time: BigNumberish, amount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "setCaller"
   ): TypedContractMethod<[_caller: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "updateRandomness"
-  ): TypedContractMethod<[randomness: BigNumberish[]], [void], "nonpayable">;
 
   getEvent(
     key: "RandomnessRequested"
@@ -210,7 +210,7 @@ export interface SimpleRandomOracle extends BaseContract {
   >;
 
   filters: {
-    "RandomnessRequested(uint256)": TypedContractEvent<
+    "RandomnessRequested(uint256,uint256)": TypedContractEvent<
       RandomnessRequestedEvent.InputTuple,
       RandomnessRequestedEvent.OutputTuple,
       RandomnessRequestedEvent.OutputObject

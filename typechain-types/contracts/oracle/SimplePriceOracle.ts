@@ -27,10 +27,10 @@ export interface SimplePriceOracleInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "caller"
+      | "fulfillPrice"
       | "prices"
       | "requestPrice"
       | "setCaller"
-      | "updatePrice"
   ): FunctionFragment;
 
   getEvent(
@@ -38,6 +38,10 @@ export interface SimplePriceOracleInterface extends Interface {
   ): EventFragment;
 
   encodeFunctionData(functionFragment: "caller", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "fulfillPrice",
+    values: [BigNumberish, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "prices",
     values: [BigNumberish]
@@ -50,22 +54,18 @@ export interface SimplePriceOracleInterface extends Interface {
     functionFragment: "setCaller",
     values: [AddressLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "updatePrice",
-    values: [BigNumberish, BigNumberish]
-  ): string;
 
   decodeFunctionResult(functionFragment: "caller", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "fulfillPrice",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "prices", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "requestPrice",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setCaller", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "updatePrice",
-    data: BytesLike
-  ): Result;
 }
 
 export namespace PriceRequestedEvent {
@@ -138,17 +138,17 @@ export interface SimplePriceOracle extends BaseContract {
 
   caller: TypedContractMethod<[], [string], "view">;
 
+  fulfillPrice: TypedContractMethod<
+    [time: BigNumberish, price: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
   prices: TypedContractMethod<[arg0: BigNumberish], [bigint], "view">;
 
   requestPrice: TypedContractMethod<[time: BigNumberish], [void], "nonpayable">;
 
   setCaller: TypedContractMethod<[_caller: AddressLike], [void], "nonpayable">;
-
-  updatePrice: TypedContractMethod<
-    [time: BigNumberish, price: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
 
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
@@ -158,6 +158,13 @@ export interface SimplePriceOracle extends BaseContract {
     nameOrSignature: "caller"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
+    nameOrSignature: "fulfillPrice"
+  ): TypedContractMethod<
+    [time: BigNumberish, price: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
     nameOrSignature: "prices"
   ): TypedContractMethod<[arg0: BigNumberish], [bigint], "view">;
   getFunction(
@@ -166,13 +173,6 @@ export interface SimplePriceOracle extends BaseContract {
   getFunction(
     nameOrSignature: "setCaller"
   ): TypedContractMethod<[_caller: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "updatePrice"
-  ): TypedContractMethod<
-    [time: BigNumberish, price: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
 
   getEvent(
     key: "PriceRequested"

@@ -10,9 +10,26 @@ export class BitkubAPI {
      */
     public async getCurrentPrice(symbol: string): Promise<number> {
         try {
-            const response = await axios.get(`${this.baseUrl}/market/ticker?sym=${symbol}_THB`);
-            const price = response.data[`${symbol}_THB`].last;
+            const response = await axios.get(`${this.baseUrl}/market/ticker?sym=THB_${symbol}`);
+            const price = response.data[`THB_${symbol}`].last;
             return price;
+        } catch (error) {
+            console.error(`Error fetching price for ${symbol}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Gets the current price for a given symbol pair from Bitkub
+     * @param symbol The trading symbol (e.g. "BTC", "ETH")
+     * @returns The current price in THB
+     */
+    public async getCurrentPriceUSD(symbol: string): Promise<number> {
+        try {
+            const response = await axios.get(`${this.baseUrl}/market/ticker?sym=THB_${symbol}`);
+            const priceTHB = response.data[`THB_${symbol}`].last;
+            const USDTRate = await this.getCurrentPrice('USDT');
+            return priceTHB / USDTRate;
         } catch (error) {
             console.error(`Error fetching price for ${symbol}:`, error);
             throw error;
